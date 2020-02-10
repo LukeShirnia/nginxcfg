@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import __future__  # pylint: disable=unused-import
-import subprocess
 import re
-import sys
 import os
 from optparse import OptionParser
 
@@ -18,9 +16,9 @@ COLOURS = {
 }
 
 
-class nginxCtl:
+class nginxCfg:
     """
-    A class for nginxCtl functionalities
+    A class for nginxCfg functionalities
     """
 
     def _get_vhosts(self):
@@ -139,7 +137,7 @@ class nginxCtl:
             server_name_found = False
             server_dict = {}
             stored = ''
-            for line_num, li in enumerate(vhost_data):
+            for line_num, _ in enumerate(vhost_data):
                 if line_num >= server_block[0]:
                     l = vhost_data[line_num]
                     if line_num >= server_block[1]:
@@ -150,15 +148,14 @@ class nginxCtl:
                         server_dict_ret.append(server_dict)
                         server_name_found = False
                         break
-    
+
                     if l.startswith('#'):
                         continue
                     l = l.split('#')[0]
-    
+
                     if not l.strip().endswith(';'):
                         if line_num != server_block[0]:
                             stored += l.strip() + ' '
-                        continue
                     else:
                         l = stored + l
                         l = l.strip().strip(';')
@@ -166,7 +163,7 @@ class nginxCtl:
 
                     if l.startswith('server_name') and server_name_found:
                         alias += l.split()[1:]
-    
+
                     if l.startswith('server_name'):
                         if l.split()[1] == "_":
                             server_dict['servername'] = "default_server_name"
@@ -196,7 +193,7 @@ class nginxCtl:
                     try:
                         ip = ip_port[0]
                         port = ip_port[1]
-                    except:
+                    except:  # pylint: disable=bare-except
                         ip = '*'
                         port = ip_port[0]
                 servername = vhost.get('servername', None)
@@ -222,7 +219,7 @@ class nginxCtl:
 
 
 def main():
-    n = nginxCtl()
+    n = nginxCfg()
 
     parser = OptionParser(usage='usage: %prog [option]')
     parser.add_option(
@@ -254,5 +251,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except FileNotFoundError as ex:
+    except IOError as ex:
         print("{0}\nIs nginx installed?".format(ex))
