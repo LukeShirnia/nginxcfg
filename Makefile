@@ -3,7 +3,7 @@ export TZ=Europe/London
 test tests: unittests
 
 unittests:
-	@PYTHONPATH=. pytest --cov=nginxctl --cov-report xml:cobertura.xml --cov-report term-missing
+	@PYTHONPATH=. pytest --cov=nginxcfg --cov-report xml:cobertura.xml --cov-report term-missing
 
 pycodestyle:
 	@pycodestyle nginxcfg.py --config pycodestyle.cfg
