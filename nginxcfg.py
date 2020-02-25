@@ -5,7 +5,7 @@ import os
 from optparse import OptionParser
 
 
-__version__ = "0.9"
+__version__ = "1.0"
 
 
 COLOURS = {
