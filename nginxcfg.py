@@ -5,7 +5,7 @@ import os
 from optparse import OptionParser
 
 
-__version__ = "1.0"
+__version__ = "1.0.1"
 
 
 COLOURS = {
@@ -45,8 +45,7 @@ class nginxCfg:
             of files this include corresponds to. Expands relative paths,
             unglobs globs etc.
         """
-        path = self._strip_line(line.split()[1])
-        orig_path = path
+        path = orig_path = self._strip_line(line.split()[1])
         included_from_dir = os.path.dirname(parent)
 
         if not os.path.isabs(path):
@@ -83,27 +82,21 @@ class nginxCfg:
         Reads all config files, starting from the main one, expands all
         includes and returns all config in the correct order as a list.
         """
-        if config_file is None:
-            config_file = "/etc/nginx/nginx.conf"
-        else:
-            config_file
+        config_file = config_file or "/etc/nginx/nginx.conf"
         ret = [config_file]
 
-        config_data = open(config_file, 'r').readlines()
-
-        for line in [line.strip().strip(';') for line in config_data]:
-            if line.startswith('#'):
-                continue
-            line = line.split('#')[0]
-            if line.startswith('include'):
-                includes = self._get_includes_line(line,
-                                                   config_file,
-                                                   "/etc/nginx/")
-                for include in includes:
-                    try:
-                        ret += self._get_all_config(include)
-                    except IOError:
-                        pass
+        with open(config_file, "r") as config_data:
+            for line in [line.strip().strip(';') for line in config_data]:
+                line = line.split('#')[0]
+                if line.startswith('include'):
+                    includes = self._get_includes_line(line,
+                                                       config_file,
+                                                       "/etc/nginx/")
+                    for include in includes:
+                        try:
+                            ret += self._get_all_config(include)
+                        except IOError:
+                            pass
         return ret
 
     def _get_vhosts_info(self, config_file):
@@ -203,6 +196,9 @@ class nginxCfg:
                 try:
                     if exclude_string in servername:
                         continue
+                    if any(exclude_string in x for x in serveralias):
+                        serveralias = \
+                            [a for a in serveralias if exclude_string not in a]
                 except TypeError:  # Used to skip empty servernames
                     pass
                 print("{0}:{1} is a Virtualhost".format(ip, port))
